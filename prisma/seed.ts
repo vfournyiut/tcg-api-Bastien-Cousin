@@ -5,6 +5,12 @@ import {prisma} from "../src/database";
 import {CardModel} from "../src/generated/prisma/models/Card";
 import {PokemonType} from "../src/generated/prisma/enums";
 
+// Fonction qui sélectionne aléatoirement n cartes parmi le tableau fourni
+function selectRandomCards(cards: any[], count: number) {
+    const shuffled = [...cards].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+}
+
 async function main() {
     console.log("🌱 Starting database seed...");
 
@@ -57,6 +63,39 @@ async function main() {
     );
 
     console.log(`✅ Created ${pokemonData.length} Pokemon cards`);
+
+    // Créer les decks de départ pour chaque utilisateur
+    const starterDeckRedCards = selectRandomCards(createdCards, 10);
+    const starterDeckBlueCards = selectRandomCards(createdCards, 10);
+
+    // Deck de départ pour l'utilisateur rouge
+    const redDeck = await prisma.deck.create({
+        data: {
+            name: "Starter Deck",
+            userId: redUser.id,
+            deckCard: {
+                create: starterDeckRedCards.map((card) => ({
+                    cardId: card.id,
+                })),
+            },
+        },
+    });
+
+    // Deck de départ pour l'utilisateur bleu
+    const blueDeck = await prisma.deck.create({
+        data: {
+            name: "Starter Deck",
+            userId: blueUser.id,
+            deckCard: {
+                create: starterDeckBlueCards.map((card) => ({
+                    cardId: card.id,
+                })),
+            },
+        },
+    });
+
+    console.log(`✅ Created Starter Deck for red with ${starterDeckRedCards.length} cards`);
+    console.log(`✅ Created Starter Deck for blue with ${starterDeckBlueCards.length} cards`);
 
     console.log("\n🎉 Database seeding completed!");
 }
