@@ -5,7 +5,7 @@ export const cardsRouter = Router()
 
 // GET /api/cards
 // Accessible via GET /api/cards
-cardsRouter.get('/api/cards', async (req: Request, res: Response) => {
+cardsRouter.get('/api/cards', async (_req: Request, res: Response) => {
     try {
         // 5. Retourner les cartes
         const cards = await prisma.card.findMany({
