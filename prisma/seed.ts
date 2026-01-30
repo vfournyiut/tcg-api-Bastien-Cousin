@@ -16,6 +16,8 @@ async function main() {
 
     await prisma.card.deleteMany();
     await prisma.user.deleteMany();
+    await prisma.deck.deleteMany();
+    await prisma.deckCard.deleteMany();
 
     const hashedPassword = await bcrypt.hash("password123", 10);
 

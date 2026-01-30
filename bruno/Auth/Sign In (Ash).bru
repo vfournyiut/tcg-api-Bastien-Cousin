@@ -1,0 +1,23 @@
+meta {
+  name: Sign In (Ash)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/auth/sign-in
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "ash@example.com",
+    "password": "password123"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
