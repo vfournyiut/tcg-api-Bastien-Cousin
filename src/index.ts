@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import {authRouter} from "./auth.route";
 import {cardsRouter} from "./cards.route";
+import {decksRouter} from "./decks.route";
 
 // Create Express app
 export const app = express();
@@ -21,6 +22,8 @@ app.use(express.json());
 app.use(authRouter);
 
 app.use(cardsRouter);
+
+app.use(decksRouter);
 
 // Serve static files (Socket.io test client)
 app.use(express.static('public'));
