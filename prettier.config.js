@@ -1,11 +1,11 @@
 export default {
-    singleQuote: true,
-    trailingComma: 'all',
+    singleQuote: false,
+    trailingComma: "all",
     semi: false,
     printWidth: 80,
-    tabWidth: 2,
+    tabWidth: 4,
     bracketSpacing: true,
     bracketSameLine: false,
-    arrowParens: 'always',
-    endOfLine: 'lf',
+    arrowParens: "always",
+    endOfLine: "lf",
 }

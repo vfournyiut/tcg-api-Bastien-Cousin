@@ -1,25 +1,25 @@
-import bcrypt from "bcryptjs";
-import {readFileSync} from "fs";
-import {join} from "path";
-import {prisma} from "../src/database";
-import {CardModel} from "../src/generated/prisma/models/Card";
-import {PokemonType} from "../src/generated/prisma/enums";
+import bcrypt from "bcryptjs"
+import { readFileSync } from "fs"
+import { join } from "path"
+import { prisma } from "../src/database"
+import { CardModel } from "../src/generated/prisma/models/Card"
+import { PokemonType } from "../src/generated/prisma/enums"
 
 // Fonction qui sélectionne aléatoirement n cartes parmi le tableau fourni
 function selectRandomCards(cards: any[], count: number) {
-    const shuffled = [...cards].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
+    const shuffled = [...cards].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, count)
 }
 
 async function main() {
-    console.log("🌱 Starting database seed...");
+    console.log("🌱 Starting database seed...")
 
-    await prisma.card.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.deck.deleteMany();
-    await prisma.deckCard.deleteMany();
+    await prisma.card.deleteMany()
+    await prisma.user.deleteMany()
+    await prisma.deck.deleteMany()
+    await prisma.deckCard.deleteMany()
 
-    const hashedPassword = await bcrypt.hash("password123", 10);
+    const hashedPassword = await bcrypt.hash("password123", 10)
 
     await prisma.user.createMany({
         data: [
@@ -34,20 +34,24 @@ async function main() {
                 password: hashedPassword,
             },
         ],
-    });
+    })
 
-    const redUser = await prisma.user.findUnique({where: {email: "red@example.com"}});
-    const blueUser = await prisma.user.findUnique({where: {email: "blue@example.com"}});
+    const redUser = await prisma.user.findUnique({
+        where: { email: "red@example.com" },
+    })
+    const blueUser = await prisma.user.findUnique({
+        where: { email: "blue@example.com" },
+    })
 
     if (!redUser || !blueUser) {
-        throw new Error("Failed to create users");
+        throw new Error("Failed to create users")
     }
 
-    console.log("✅ Created users:", redUser.username, blueUser.username);
+    console.log("✅ Created users:", redUser.username, blueUser.username)
 
-    const pokemonDataPath = join(__dirname, "data", "pokemon.json");
-    const pokemonJson = readFileSync(pokemonDataPath, "utf-8");
-    const pokemonData: CardModel[] = JSON.parse(pokemonJson);
+    const pokemonDataPath = join(__dirname, "data", "pokemon.json")
+    const pokemonJson = readFileSync(pokemonDataPath, "utf-8")
+    const pokemonData: CardModel[] = JSON.parse(pokemonJson)
 
     const createdCards = await Promise.all(
         pokemonData.map((pokemon) =>
@@ -60,15 +64,15 @@ async function main() {
                     pokedexNumber: pokemon.pokedexNumber,
                     imgUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.pokedexNumber}.png`,
                 },
-            })
-        )
-    );
+            }),
+        ),
+    )
 
-    console.log(`✅ Created ${pokemonData.length} Pokemon cards`);
+    console.log(`✅ Created ${pokemonData.length} Pokemon cards`)
 
     // Créer les decks de départ pour chaque utilisateur
-    const starterDeckRedCards = selectRandomCards(createdCards, 10);
-    const starterDeckBlueCards = selectRandomCards(createdCards, 10);
+    const starterDeckRedCards = selectRandomCards(createdCards, 10)
+    const starterDeckBlueCards = selectRandomCards(createdCards, 10)
 
     // Deck de départ pour l'utilisateur rouge
     const redDeck = await prisma.deck.create({
@@ -81,7 +85,7 @@ async function main() {
                 })),
             },
         },
-    });
+    })
 
     // Deck de départ pour l'utilisateur bleu
     const blueDeck = await prisma.deck.create({
@@ -94,19 +98,23 @@ async function main() {
                 })),
             },
         },
-    });
+    })
 
-    console.log(`✅ Created Starter Deck for red with ${starterDeckRedCards.length} cards`);
-    console.log(`✅ Created Starter Deck for blue with ${starterDeckBlueCards.length} cards`);
+    console.log(
+        `✅ Created Starter Deck for red with ${starterDeckRedCards.length} cards`,
+    )
+    console.log(
+        `✅ Created Starter Deck for blue with ${starterDeckBlueCards.length} cards`,
+    )
 
-    console.log("\n🎉 Database seeding completed!");
+    console.log("\n🎉 Database seeding completed!")
 }
 
 main()
     .catch((e) => {
-        console.error("❌ Error seeding database:", e);
-        process.exit(1);
+        console.error("❌ Error seeding database:", e)
+        process.exit(1)
     })
     .finally(async () => {
-        await prisma.$disconnect();
-    });
+        await prisma.$disconnect()
+    })
