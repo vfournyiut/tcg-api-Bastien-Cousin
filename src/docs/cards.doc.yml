@@ -1,0 +1,32 @@
+paths:
+  /api/cards:
+    get:
+      tags:
+        - Cards
+      summary: Obtenir toutes les cartes
+      description: Récupère la liste complète de toutes les cartes Pokémon disponibles dans le jeu. Cet endpoint est public et ne nécessite pas d'authentification.
+      operationId: getAllCards
+      parameters: []
+      responses:
+        '200':
+          description: Liste des cartes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Envoi des cartes réussie"
+                  cards:
+                    type: array
+                    description: Tableau de toutes les cartes disponibles, triées par numéro pokédex croissant
+                    items:
+                      $ref: '#/components/schemas/Card'
+        '500':
+          description: Erreur serveur lors de la récupération des cartes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security: []
