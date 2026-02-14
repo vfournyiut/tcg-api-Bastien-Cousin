@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && npm run copy:docs",
+    "copy:docs": "node copy-docs.js",
     "ts:check": "tsc --noEmit",
     "start": "node dist/index.js",
     "test": "vitest --coverage --run",

@@ -5,6 +5,8 @@ import cors from "cors";
 import {authRouter} from "./auth.route";
 import {cardsRouter} from "./cards.route";
 import {decksRouter} from "./decks.route";
+import swaggerUi from 'swagger-ui-express';
+import {swaggerDocument} from './docs';
 
 // Create Express app
 export const app = express();
@@ -18,6 +20,12 @@ app.use(
 );
 
 app.use(express.json());
+
+// Documentation Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: "API Pokémon Documentation"
+}))
 
 app.use(authRouter);
 
