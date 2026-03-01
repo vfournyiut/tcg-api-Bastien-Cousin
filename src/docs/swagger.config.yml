@@ -1,0 +1,200 @@
+openapi: 3.0.0
+info:
+  title: API Pokémon TCG
+  version: 1.0.0
+  description: Documentation complète de l'API Pokémon Trading Card Game avec authentification JWT
+  contact:
+    name: Bastien COUSIN
+    email: bastiencousin.pro@gmail.com
+
+servers:
+  - url: http://localhost:3000
+    description: Serveur de développement
+  - url: https://api.production.com
+    description: Serveur de production
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Token JWT à obtenir via POST /auth/sign-in ou POST /auth/sign-up"
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID unique de l'utilisateur
+          example: 1
+        email:
+          type: string
+          format: email
+          description: Adresse email unique de l'utilisateur
+          example: "alice@example.com"
+        username:
+          type: string
+          description: Nom d'utilisateur
+          example: "Alice"
+        password:
+          type: string
+          format: password
+          description: Mot de passe hashé en base de données (jamais retourné au client)
+          example: "$2a$10$..."
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création du compte
+          example: "2024-01-22T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière modification
+          example: "2024-01-22T10:30:00Z"
+
+    UserResponse:
+      type: object
+      description: Données publiques de l'utilisateur (sans mot de passe)
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: "alice@example.com"
+        username:
+          type: string
+          example: "Alice"
+
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID unique de la carte en base de données
+          example: 1
+        pokedexNumber:
+          type: integer
+          description: Numéro pokédex du Pokémon (1-151)
+          example: 1
+        name:
+          type: string
+          description: Nom du Pokémon
+          example: "Bulbasaur"
+        hp:
+          type: integer
+          description: Points de vie du Pokémon
+          example: 45
+        attack:
+          type: integer
+          description: Valeur d'attaque du Pokémon
+          example: 49
+        type:
+          type: string
+          description: Type du Pokémon
+          example: "Grass"
+          enum: ["Fire", "Water", "Grass", "Electric", "Psychic", "Fighting", "Rock", "Ground", "Flying", "Bug", "Poison", "Ghost", "Ice", "Dragon", "Normal", "Dark", "Steel", "Fairy"]
+        imgUrl:
+          type: string
+          format: uri
+          description: URL de l'image de la carte (peut être null)
+          example: "https://example.com/images/1.png"
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de la carte en base de données
+          example: "2024-01-22T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière mise à jour
+          example: "2024-01-22T10:30:00Z"
+
+    Deck:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID unique du deck
+          example: 1
+        name:
+          type: string
+          description: Nom du deck
+          example: "Deck Légendaires"
+        userId:
+          type: integer
+          description: ID du propriétaire du deck
+          example: 1
+        cards:
+          type: array
+          description: Liste des cartes du deck
+          items:
+            $ref: '#/components/schemas/Card'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création du deck
+          example: "2024-01-22T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière modification
+          example: "2024-01-22T10:30:00Z"
+
+    DeckRequest:
+      type: object
+      description: Requête pour créer ou modifier un deck
+      properties:
+        name:
+          type: string
+          description: Nom du deck
+          example: "Deck Légendaires"
+        cards:
+          type: array
+          description: Tableau de 10 numéros pokédex (pour création)
+          items:
+            type: integer
+          minItems: 10
+          maxItems: 10
+          example: [144, 145, 146, 149, 150, 151, 243, 244, 245, 249]
+        modifiedCards:
+          type: array
+          description: Tableau de 10 numéros pokédex (pour modification)
+          items:
+            type: integer
+          minItems: 10
+          maxItems: 10
+          example: [1, 4, 7, 25, 39, 52, 58, 69, 77, 100]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Description du message d'erreur
+          example: "Email ou mot de passe incorrect"
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Connexion réussie"
+        token:
+          type: string
+          description: JWT token pour l'authentification des requêtes protégées
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+tags:
+  - name: Authentication
+    description: Endpoints d'authentification (inscription et connexion)
+  - name: Cards
+    description: Endpoints pour consulter les cartes Pokémon disponibles
+  - name: Decks
+    description: Endpoints pour gérer les decks de l'utilisateur (CRUD protégé)
