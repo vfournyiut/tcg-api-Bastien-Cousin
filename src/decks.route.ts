@@ -1,28 +1,28 @@
-import {Request, Response, Router} from 'express'
-import {prisma} from "../src/database";
-import {authenticateToken} from "./auth.middleware";
+import { Request, Response, Router } from 'express'
+import { prisma } from "../src/database";
+import { authenticateToken } from "./auth.middleware";
 
 export const decksRouter = Router()
 
 // POST /api/decks
 // Accessible via POST /api/decks
 decksRouter.post('/api/decks', authenticateToken, async (req: Request, res: Response) => {
-    const {name, cards} = req.body
+    const { name, cards } = req.body
 
     try {
         // 1. Vérifier que le token est présent et valide
         if (!req.user) {
-            return res.status(401).json({error: 'Token manquant / invalide'})
+            return res.status(401).json({ error: 'Token manquant / invalide' })
         }
 
         // 2. Vérifier que le nom est présent
         if (!name) {
-            return res.status(400).json({error: 'Nom du deck manquant'})
+            return res.status(400).json({ error: 'Nom du deck manquant' })
         }
 
         // 3. Vérifier le type de cards et le nombre de cartes dans le deck
         if (!Array.isArray(cards) || cards.length !== 10) {
-            return res.status(400).json({error: 'Le deck ne possède pas exactement 10 cartes'})
+            return res.status(400).json({ error: 'Le deck ne possède pas exactement 10 cartes' })
         }
 
         // 4. Vérifier si les numéros de pokédex des pokémons du deck sont valides
@@ -34,12 +34,12 @@ decksRouter.post('/api/decks', authenticateToken, async (req: Request, res: Resp
 
         const numMaxPokemon = result._max.pokedexNumber
         if (!numMaxPokemon) {
-            return res.status(500).json({error: 'Erreur serveur'})
+            return res.status(500).json({ error: 'Erreur serveur' })
         }
 
-        for(let i: number = 0; i < cards.length; i++) {
-            if (cards[i] < 1 && cards[i] > numMaxPokemon) {
-                return res.status(400).json({error: 'Un ou plusieurs id des pokémons du deck sont invalides'})
+        for (let i: number = 0; i < cards.length; i++) {
+            if (cards[i] < 1 || cards[i] > numMaxPokemon) {
+                return res.status(400).json({ error: 'Un ou plusieurs id des pokémons du deck sont invalides' })
             }
         }
 
@@ -78,7 +78,7 @@ decksRouter.post('/api/decks', authenticateToken, async (req: Request, res: Resp
         })
     } catch (error) {
         console.error('Erreur lors de la création du deck :', error)
-        return res.status(500).json({error: 'Erreur serveur'})
+        return res.status(500).json({ error: 'Erreur serveur' })
     }
 })
 
@@ -88,20 +88,21 @@ decksRouter.get('/api/decks/mine', authenticateToken, async (req: Request, res: 
     try {
         // 1. Vérifier que le token est présent et valide
         if (!req.user) {
-            return res.status(401).json({error: 'Token manquant / invalide'})
+            return res.status(401).json({ error: 'Token manquant / invalide' })
         }
 
         // 2. Récupérer la liste des decks de cet utilisateur
         const userId = req.user.userId
 
         const decks = await prisma.deck.findMany({
-            where: {userId},
+            where: { userId },
         });
 
         // 3. Vérifier si la liste des decks est vide ou non
-        if (!decks) {
+        if (decks.length === 0) {
             return res.status(200).json({
-                message: '[]',
+                message: 'Decks récupérés avec succès',
+                decks: [],
             })
         }
 
@@ -135,7 +136,7 @@ decksRouter.get('/api/decks/mine', authenticateToken, async (req: Request, res: 
         })
     } catch (error) {
         console.error('Erreur lors de la récupération des decks :', error)
-        return res.status(500).json({error: 'Erreur serveur'})
+        return res.status(500).json({ error: 'Erreur serveur' })
     }
 })
 
@@ -145,25 +146,25 @@ decksRouter.get('/api/decks/:id', authenticateToken, async (req: Request, res: R
     try {
         // 1. Vérifier que le token est présent et valide
         if (!req.user) {
-            return res.status(401).json({error: 'Token manquant / invalide'})
+            return res.status(401).json({ error: 'Token manquant / invalide' })
         }
 
         // 2. Récupérer l'id en paramètre, puis récupérer le deck et vérifier si l'id de ce deck existe
         const deckId = parseInt(req.params.id)
 
         const deck = await prisma.deck.findUnique({
-            where: {id: deckId},
+            where: { id: deckId },
         });
 
         if (!deck) {
-            return res.status(404).json({error: 'Deck inexistant'})
+            return res.status(404).json({ error: 'Deck inexistant' })
         }
 
         // 3. Vérifier si le deck appartient à l'utilisateur
         const userId = req.user.userId
 
         if (deck.userId !== userId) {
-            return res.status(403).json({error: 'Le deck n\'appartient pas à cet utilisateur'})
+            return res.status(403).json({ error: 'Le deck n\'appartient pas à cet utilisateur' })
         }
 
         // 4. Retourner le deck de l'utilisateur avec ses cartes
@@ -188,44 +189,44 @@ decksRouter.get('/api/decks/:id', authenticateToken, async (req: Request, res: R
         })
     } catch (error) {
         console.error('Erreur lors de la récupération du deck :', error)
-        return res.status(500).json({error: 'Erreur serveur'})
+        return res.status(500).json({ error: 'Erreur serveur' })
     }
 })
 
 // PATCH /api/decks/:id
 // Accessible via PATCH /api/decks/:id
 decksRouter.patch('/api/decks/:id', authenticateToken, async (req: Request, res: Response) => {
-    const {name, modifiedCards} = req.body
-    
+    const { name, modifiedCards } = req.body
+
     try {
         // 1. Vérifier que le token est présent et valide
         if (!req.user) {
-            return res.status(401).json({error: 'Token manquant / invalide'})
+            return res.status(401).json({ error: 'Token manquant / invalide' })
         }
 
         // 2. Récupérer l'id en paramètre, puis récupérer le deck et vérifier si l'id de ce deck existe
         const deckId = parseInt(req.params.id)
 
         const deck = await prisma.deck.findUnique({
-            where: {id: deckId},
+            where: { id: deckId },
         });
 
         if (!deck) {
-            return res.status(404).json({error: 'Deck inexistant'})
+            return res.status(404).json({ error: 'Deck inexistant' })
         }
 
         // 3. Vérifier si le deck appartient à l'utilisateur
         const userId = req.user.userId
 
         if (deck.userId !== userId) {
-            return res.status(403).json({error: 'Le deck n\'appartient pas à cet utilisateur'})
+            return res.status(403).json({ error: 'Le deck n\'appartient pas à cet utilisateur' })
         }
 
         // 4. Vérifier le type de cards et le nombre de cartes dans le deck
         if (!Array.isArray(modifiedCards) || modifiedCards.length !== 10) {
-            return res.status(400).json({error: 'Le deck ne possède pas exactement 10 cartes'})
+            return res.status(400).json({ error: 'Le deck ne possède pas exactement 10 cartes' })
         }
-        
+
         // 5. Vérifier si les numéros de pokédex des pokémons du deck sont valides
         const result = await prisma.card.aggregate({
             _max: {
@@ -235,12 +236,12 @@ decksRouter.patch('/api/decks/:id', authenticateToken, async (req: Request, res:
 
         const numMaxPokemon = result._max.pokedexNumber
         if (!numMaxPokemon) {
-            return res.status(500).json({error: 'Erreur serveur'})
+            return res.status(500).json({ error: 'Erreur serveur' })
         }
 
-        for(let i: number = 0; i < modifiedCards.length; i++) {
-            if (modifiedCards[i] < 1 && modifiedCards[i] > numMaxPokemon) {
-                return res.status(400).json({error: 'Un ou plusieurs id des pokémons du deck sont invalides'})
+        for (let i: number = 0; i < modifiedCards.length; i++) {
+            if (modifiedCards[i] < 1 || modifiedCards[i] > numMaxPokemon) {
+                return res.status(400).json({ error: 'Un ou plusieurs id des pokémons du deck sont invalides' })
             }
         }
 
@@ -286,36 +287,36 @@ decksRouter.patch('/api/decks/:id', authenticateToken, async (req: Request, res:
         })
     } catch (error) {
         console.error('Erreur lors de la modification du deck :', error)
-        return res.status(500).json({error: 'Erreur serveur'})
+        return res.status(500).json({ error: 'Erreur serveur' })
     }
 })
 
 // DELETE /api/decks/:id
 // Accessible via DELETE /api/decks/:id
 decksRouter.delete('/api/decks/:id', authenticateToken, async (req: Request, res: Response) => {
-    
+
     try {
         // 1. Vérifier que le token est présent et valide
         if (!req.user) {
-            return res.status(401).json({error: 'Token manquant / invalide'})
+            return res.status(401).json({ error: 'Token manquant / invalide' })
         }
 
         // 2. Récupérer l'id en paramètre, puis récupérer le deck et vérifier si l'id de ce deck existe
         const deckId = parseInt(req.params.id)
 
         const deck = await prisma.deck.findUnique({
-            where: {id: deckId},
+            where: { id: deckId },
         });
 
         if (!deck) {
-            return res.status(404).json({error: 'Deck inexistant'})
+            return res.status(404).json({ error: 'Deck inexistant' })
         }
 
         // 3. Vérifier si le deck appartient à l'utilisateur
         const userId = req.user.userId
 
         if (deck.userId !== userId) {
-            return res.status(403).json({error: 'Le deck n\'appartient pas à cet utilisateur'})
+            return res.status(403).json({ error: 'Le deck n\'appartient pas à cet utilisateur' })
         }
 
         // 4. Supprimer le deck de l'utilisateur et les deckCards associés
@@ -339,6 +340,6 @@ decksRouter.delete('/api/decks/:id', authenticateToken, async (req: Request, res
         })
     } catch (error) {
         console.error('Erreur lors de la supression du deck :', error)
-        return res.status(500).json({error: 'Erreur serveur'})
+        return res.status(500).json({ error: 'Erreur serveur' })
     }
 })
